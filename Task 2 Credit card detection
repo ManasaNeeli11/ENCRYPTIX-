@@ -1,0 +1,50 @@
+pip install pandas scikit-learn imbalanced-learn
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from imblearn.over_sampling import SMOTE
+
+# Load the dataset
+data = pd.read_csv('creditcard.csv')
+
+# Display the first few rows of the dataset and check for missing values
+print(data.head())
+print(data.info())
+
+# Check the distribution of the target variable (Class: 0 = legitimate, 1 = fraudulent)
+print("\nFraud Class Distribution:")
+print(data['Class'].value_counts())
+
+# Separate features and target variable
+X = data.drop(['Class'], axis=1)
+y = data['Class']
+
+# Split the dataset into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Handle imbalanced data with SMOTE (Synthetic Minority Over-sampling Technique)
+smote = SMOTE(random_state=42)
+X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+# Create a random forest classifier
+model = RandomForestClassifier(random_state=42)
+
+# Train the model
+model.fit(X_train_resampled, y_train_resampled)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
