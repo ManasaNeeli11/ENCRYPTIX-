@@ -1,0 +1,47 @@
+pip install pandas scikit-learn nltk
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, accuracy_score
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+# Download NLTK resources (uncomment the lines below if not downloaded)
+# nltk.download('punkt')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+
+# Load the dataset
+data = pd.read_csv('spam.csv', encoding='ISO-8859-1')
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# Preprocessing text data
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('english'))
+
+def preprocess_text(text):
+    # Tokenize the text
+    words = word_tokenize(text.lower())
+    
+    # Remove stopwords and lemmatize
+    filtered_words = [lemmatizer.lemmatize(word) for word in words if word.isalnum() and word not in stop_words]
+    
+    return ' '.join(filtered_words)
+
+# Apply preprocessing to the text column
+data['text'] = data['text'].apply(preprocess_text)
+
+# Separate features and target variable
+X = data['text']
+y = data['label']
+
+# Split the dataset into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Vectorize text using TF-IDF representation
+vectorizer = Tfidf
