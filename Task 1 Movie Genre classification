@@ -1,0 +1,46 @@
+python web_scraper.py
+plot,genre
+"A young boy discovers a magical world.",Fantasy
+"A detective solves a mysterious crime.",Crime
+...
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import classification_report
+
+# Load the dataset
+data = pd.read_csv('movies.csv')
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# Split the dataset into training and test sets
+X = data['plot']
+y = data['genre']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create a text classification pipeline
+model = make_pipeline(TfidfVectorizer(), MultinomialNB())
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print(classification_report(y_test, y_pred))
+
+# Interactive prediction
+def predict_genre(plot):
+    return model.predict([plot])[0]
+
+# Example usage
+while True:
+    plot = input("Enter a movie plot (or 'exit' to quit): ").strip()
+    if plot.lower() == 'exit':
+        break
+    genre = predict_genre(plot)
+    print(f"The predicted genre is: {genre}")
