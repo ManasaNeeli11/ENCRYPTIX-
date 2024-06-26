@@ -1,0 +1,57 @@
+pip install pandas scikit-learn matplotlib seaborn
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+data = pd.read_csv('customer_churn.csv')
+
+# Display the first few rows of the dataset and check for missing values
+print(data.head())
+print(data.info())
+
+# Check the distribution of the target variable (Churn)
+print("\nChurn distribution:")
+print(data['Churn'].value_counts())
+
+# Separate features and target variable
+X = data.drop(['Churn'], axis=1)
+y = data['Churn']
+
+# Convert categorical variables to dummy variables (if needed)
+X = pd.get_dummies(X)
+
+# Split the dataset into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Create a random forest classifier
+model = RandomForestClassifier(random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+
+# Feature importance
+feature_importance = pd.Series(model.feature_importances_, index=X.columns)
+feature_importance.nlargest(10).plot(kind='barh')
+plt.title('Top 10 Important Features')
+plt.show()
