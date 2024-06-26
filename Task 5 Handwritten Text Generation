@@ -1,0 +1,64 @@
+pip install numpy tensorflow keras matplotlib
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, RepeatVector, TimeDistributed
+import matplotlib.pyplot as plt
+
+# Generate synthetic data (simplified for demonstration)
+data = ['hello', 'world', 'python', 'example']
+
+# Define character set and mapping
+chars = sorted(list(set(''.join(data))))
+char_to_idx = {ch: idx for idx, ch in enumerate(chars)}
+idx_to_char = {idx: ch for idx, ch in enumerate(chars)}
+num_chars = len(chars)
+
+# Prepare data for training
+max_len = max([len(word) for word in data])
+X = np.zeros((len(data), max_len, num_chars), dtype=np.float32)
+y = np.zeros((len(data), max_len, num_chars), dtype=np.float32)
+
+for i, word in enumerate(data):
+    for t, char in enumerate(word):
+        X[i, t, char_to_idx[char]] = 1.0
+        if t < len(word) - 1:
+            y[i, t, char_to_idx[word[t + 1]]] = 1.0
+
+# Build the model
+model = Sequential([
+    LSTM(128, input_shape=(max_len, num_chars)),
+    RepeatVector(max_len),
+    LSTM(128, return_sequences=True),
+    TimeDistributed(Dense(num_chars, activation='softmax'))
+])
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(X, y, epochs=100, batch_size=1, verbose=2)
+
+# Function to generate handwritten-like text
+def generate_text(model, length):
+    start_idx = np.random.randint(0, num_chars)
+    pattern = np.zeros((1, max_len, num_chars))
+    pattern[0, 0, start_idx] = 1.0
+    
+    text = [idx_to_char[start_idx]]
+    for i in range(length):
+        prediction = model.predict(pattern, verbose=0)
+        idx = np.argmax(prediction[0, i, :])
+        text.append(idx_to_char[idx])
+        pattern[0, i + 1, idx] = 1.0
+    
+    return ''.join(text)
+
+# Generate and print handwritten-like text
+generated_text = generate_text(model, length=10)
+print("Generated Handwritten-Like Text:", generated_text)
+
+# Plot training history
+plt.plot(history.history['loss'])
+plt.title('Model Training Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.show()
